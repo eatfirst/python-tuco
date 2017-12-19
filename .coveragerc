@@ -1,0 +1,16 @@
+[paths]
+source =
+   src/tuco
+   */site-packages/tuco
+
+[run]
+branch = true
+source =
+    tuco
+    tests
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*

@@ -1,0 +1,52 @@
+# This file exists so you can easily regenerate your project.
+#
+# `cookiepatcher` is a convenient shim around `cookiecutter`
+# for regenerating projects (it will generate a .cookiecutterrc
+# automatically for any template). To use it:
+#
+#    pip install cookiepatcher
+#    cookiepatcher gh:ionelmc/cookiecutter-pylibrary project-path
+#
+# See:
+#    https://pypi.python.org/pypi/cookiepatcher
+#
+# Alternatively, you can run:
+#
+#    cookiecutter --overwrite-if-exists --config-file=project-path/.cookiecutterrc gh:ionelmc/cookiecutter-pylibrary
+
+default_context:
+
+    appveyor:                  'yes'
+    c_extension_function:      'longest'
+    c_extension_module:        '_tuco'
+    c_extension_optional:      'no'
+    c_extension_support:       'no'
+    codacy:                    'no'
+    codeclimate:               'no'
+    codecov:                   'no'
+    command_line_interface:    'no'
+    command_line_interface_bin_name: 'tuco'
+    coveralls:                 'yes'
+    distribution_name:         'tuco'
+    email:                     'it+opensource@eatfirst.com'
+    full_name:                 'EatFirst'
+    github_username:           'eatfirst'
+    landscape:                 'yes'
+    license:                   'MIT license'
+    linter:                    'flake8'
+    package_name:              'tuco'
+    project_name:              'Tuco FSM'
+    project_short_description: 'A simple class based finite state machine with parsing time validation'
+    release_date:              'today'
+    repo_name:                 'python-tuco'
+    requiresio:                'no'
+    scrutinizer:               'no'
+    sphinx_doctest:            'yes'
+    sphinx_theme:              'sphinx-rtd-theme'
+    test_matrix_configurator:  'no'
+    test_matrix_separate_coverage: 'no'
+    test_runner:               'pytest'
+    travis:                    'yes'
+    version:                   '0.1.0'
+    website:                   'https://github.com/eatfirst/python-tuco'
+    year:                      'now'
