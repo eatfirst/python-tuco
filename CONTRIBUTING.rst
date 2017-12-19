@@ -61,6 +61,8 @@ To set up `python-tuco` for local development:
 
 6. Submit a pull request through the GitHub website.
 
+7. If your pull request is accepted, all your commits will be squashed into one.
+
 Pull Request Guidelines
 -----------------------
 
