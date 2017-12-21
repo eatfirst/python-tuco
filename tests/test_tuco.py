@@ -1,5 +1,6 @@
 """FSM Base tests."""
 
+import os
 import queue
 import threading
 import time
@@ -8,91 +9,12 @@ from unittest import mock
 
 import pytest
 import pytz
+from tests.example_fsm import ExampleCreditCardFSM, StateHolder
 
 from tuco import FSM, properties
 from tuco.decorators import on_change, on_error
 from tuco.exceptions import TucoAlreadyLocked, TucoEventNotFound, TucoInvalidStateChange
 from tuco.locks import RedisLock
-
-
-class StateHolder:
-    """A simple class to hold current states."""
-
-    def __init__(self):
-        """Just initialize with None."""
-        self.current_state = None
-        self.current_state_date = None
-        self.id = 1234
-
-
-class ExampleCreditCardFSM(FSM):
-    """Credit card FSM."""
-
-    initial_state = 'new'
-    state_attribute = 'current_state'
-
-    event_error = properties.FinalState()
-    state_error = properties.FinalState()
-
-    new = properties.State(
-        events=[
-            properties.Event(
-                'Initialize',
-                'authorisation_pending',
-                error=properties.Error('event_error')
-            )
-        ],
-        error=properties.Error('state_error')
-    )
-
-    authorisation_pending = properties.State(
-        events=[
-            properties.Event(
-                'Authorised',
-                'capture_pending',
-            )
-        ],
-    )
-
-    capture_pending = properties.State(
-        events=[
-            properties.Event('Captured', 'paid'),
-        ],
-        timeout=properties.Timeout(timedelta(days=7), 'timeout_test')
-    )
-
-    timeout_test = properties.FinalState()
-
-    paid = properties.State(
-        events=[
-            properties.Event('Refund', 'refund_pending'),
-        ]
-    )
-
-    finished = properties.State(
-        events=[
-            properties.Event('ChargedBack', 'charged_back'),
-            properties.Event('Refunded', 'refunded'),
-        ]
-    )
-
-    refund_pending = properties.State(
-        events=[
-            properties.Event('Refunded', 'refunded'),
-        ]
-    )
-
-    refunded = properties.FinalState()
-    charged_back = properties.FinalState()
-
-
-def test_graph():
-    """Dumb test to check if graphics are not broken."""
-    fsm = ExampleCreditCardFSM(StateHolder())
-    svg = fsm.generate_graph()
-    with open('/tmp/cc.svg', 'w') as handle:
-        handle.write(svg)
-    assert svg.startswith('<?xml')
 
 
 def test_state_changing():
@@ -490,7 +412,8 @@ def test_redis_locking():
     class ConfiguredRedisLock(RedisLock):
         def __init__(self, *args, **kwargs):
             import redis
-            super().__init__(10, redis.StrictRedis(), *args, **kwargs)
+            os.environ.setdefault('REDIS_SERVER', '127.0.0.1')
+            super().__init__(10, redis.StrictRedis(os.environ['REDIS_SERVER']), *args, **kwargs)
 
     class TestFSM(FSM):
         """Dumb class."""
