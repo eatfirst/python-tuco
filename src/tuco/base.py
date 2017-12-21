@@ -5,8 +5,7 @@ from typing import Dict, Iterator, List, Tuple, Type  # noqa
 
 import pytz
 
-from tuco.exceptions import (TucoAlreadyLocked, TucoEventNotFound, TucoFinalStateIsImmutable, TucoInvalidStateChange,
-                             TucoInvalidStateHolder)
+from tuco.exceptions import TucoAlreadyLocked, TucoEventNotFound, TucoInvalidStateChange, TucoInvalidStateHolder
 from tuco.locks import MemoryLock
 from tuco.locks.base import BaseLock  # noqa
 from tuco.meta import FSMBase
@@ -158,7 +157,7 @@ class FSM(metaclass=FSMBase):
         """
         try:
             self._get_event(event_name)
-        except (TucoEventNotFound, TucoFinalStateIsImmutable):
+        except TucoEventNotFound:
             return False
 
         return True

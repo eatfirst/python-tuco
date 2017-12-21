@@ -7,12 +7,6 @@ class TucoException(Exception):
     pass
 
 
-class TucoEventNotAllowed(TucoException):
-    """Event not allowed."""
-
-    pass
-
-
 class TucoEventNotFound(TucoException):
     """Event not found."""
 
@@ -39,12 +33,6 @@ class TucoDoNotLock(TucoException):
 
 class TucoAlreadyLocked(TucoException):
     """When an object is already locked."""
-
-    pass
-
-
-class TucoFinalStateIsImmutable(TucoException):
-    """When an event is triggered on a final state."""
 
     pass
 
