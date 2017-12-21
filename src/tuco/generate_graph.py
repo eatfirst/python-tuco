@@ -24,7 +24,7 @@ def iterate_states(dot, states) -> None:
     """Iterate over all states sent and add nodes to a graphviz instance."""
     for state_name, state in states:
         if isinstance(state, FinalState):
-            dot.node(state_name, _attributes={'shape': 'box', 'fillcolor': 'silver', 'style': 'filled'})
+            dot.node(state_name, _attributes={'shape': 'box', 'fillcolor': 'lightgray', 'style': 'filled'})
             continue
         else:
             dot.node(state_name)
@@ -35,7 +35,7 @@ def iterate_states(dot, states) -> None:
         if state.timeout:
             dot.node(state.timeout.target_state)
             dot.edge(state_name, state.timeout.target_state, label='Timeout',
-                     _attributes={'color': 'silver', 'fontcolor': 'silver'})
+                     _attributes={'color': 'lightgray', 'fontcolor': 'lightgray'})
 
         iterate_events(dot, state_name, state.events)
 

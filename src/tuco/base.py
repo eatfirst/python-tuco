@@ -18,8 +18,12 @@ mockable_utcnow = datetime.utcnow  # Easier to write tests
 
 
 class FSM(metaclass=FSMBase):
-    """Class that handle event transitions."""
+    """Class that handle event transitions.
 
+    Your state machines should extend from this.
+    """
+
+    #: The default initial state is "new" but can be overridden
     initial_state = 'new'
     state_attribute = 'current_state'
     date_attribute = 'current_state_date'
@@ -230,7 +234,11 @@ class FSM(metaclass=FSMBase):
                 yield state_name
 
     def _call_on_change(self, old_state, new_state) -> None:
-        """If on_change function exists, call it."""
+        """If on_change function exists, call it.
+
+        :param old_state: A shallow copy of the holder object.
+        :param new_state: The changed version of the object holder.
+        """
         function = getattr(self, '_on_change_event', None)
         if function:
             function(old_state, new_state)

@@ -78,8 +78,7 @@ https://python-tuco.readthedocs.io/
 
 Development
 ===========
-
-To run the all tests run::
+Make sure you have a running redis instance and to run the all tests run::
 
     tox
 
