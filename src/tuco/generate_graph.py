@@ -5,11 +5,14 @@ from typing import Type
 from graphviz import Digraph
 
 from tuco import FSM
+from tuco.exceptions import TucoEmptyFSM
 from tuco.properties import FinalState
 
 
 def generate_from_class(cls: Type[FSM], file_format) -> str:
     """Generate a SVG graph from a tuco fsm class."""
+    if not cls._states:
+        raise TucoEmptyFSM()
     comment = cls.__doc__ or ''
     # Replace line endings for multi line comments.
     comment = comment.replace('\n', '\n//')

@@ -47,3 +47,9 @@ class TucoFinalStateIsImmutable(TucoException):
     """When an event is triggered on a final state."""
 
     pass
+
+
+class TucoEmptyFSM(TucoException):
+    """FSM has no state defined."""
+
+    pass
