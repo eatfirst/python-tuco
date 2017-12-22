@@ -4,7 +4,7 @@ from typing import List, Optional, Type
 
 from tuco import FSM
 from tuco.exceptions import TucoEmptyFSM
-from tuco.properties import Error, Event, FinalState, Timeout
+from tuco.properties import Error, Event, FinalState, State, Timeout
 
 
 class GenerateGraph:
@@ -46,15 +46,9 @@ class GenerateGraph:
         """Iterate over all states sent and add nodes to graphviz."""
         for state_name, state in self.states:
             if isinstance(state, FinalState):
-                self.dot.node(state_name, _attributes=self.FINAL_STATE_ATTRIBUTES)
-                continue
+                self.add_final_state_node(state_name)
             else:
-                self.dot.node(state_name)
-
-            self.add_error_node(state_name, state.error)
-            self.add_timeout_node(state_name, state.timeout)
-
-            self.iterate_events(state_name, state.events)
+                self.add_node(state, state_name)
 
     def iterate_events(self, parent_state_name: str, events: List[Event]) -> None:
         """Iterate over all events of a state and add nodes to graphviz."""
@@ -64,6 +58,19 @@ class GenerateGraph:
                           _attributes=self.EVENT_ATTRIBUTES)
 
             self.add_error_node(parent_state_name, event.error)
+
+    def add_node(self, state: State, state_name: str) -> None:
+        """Add a node with its events and timeouts."""
+        self.dot.node(state_name)
+
+        self.add_error_node(state_name, state.error)
+        self.add_timeout_node(state_name, state.timeout)
+
+        self.iterate_events(state_name, state.events)
+
+    def add_final_state_node(self, state_name: str) -> None:
+        """Add a final node."""
+        self.dot.node(state_name, _attributes=self.FINAL_STATE_ATTRIBUTES)
 
     def add_error_node(self, parent_state_name: str, error: Optional[Error]) -> None:
         """Render an error node if present."""
