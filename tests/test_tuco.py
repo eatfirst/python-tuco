@@ -26,12 +26,12 @@ def test_state_changing():
     assert fsm.trigger('Initialize')
     assert fsm.current_state == 'authorisation_pending'
 
-    assert fsm.event_allowed('Authorised')
-    assert fsm.trigger('Authorised')
+    assert fsm.event_allowed('Authorize')
+    assert fsm.trigger('Authorize')
     assert fsm.current_state == 'capture_pending'
 
-    assert fsm.event_allowed('Captured')
-    assert fsm.trigger('Captured')
+    assert fsm.event_allowed('Capture')
+    assert fsm.trigger('Capture')
     assert fsm.current_state == 'paid'
 
     assert fsm.event_allowed('Initialize') is False
