@@ -1,7 +1,7 @@
 from threading import RLock
 from typing import Dict  # noqa
 
-from tuco.exceptions import TucoAlreadyLocked, TucoDoNotLock
+from tuco.exceptions import TucoAlreadyLockedError, TucoDoNotLockError
 
 from .base import BaseLock
 
@@ -16,12 +16,12 @@ class MemoryLock(BaseLock):
         """Lock an object."""
         try:
             hash_key = self.hash_key
-        except TucoDoNotLock:
+        except TucoDoNotLockError:
             return True
 
         with self.global_lock:
             if hash_key in self.locks:
-                raise TucoAlreadyLocked()
+                raise TucoAlreadyLockedError()
             self.locks[hash_key] = 'locked'
             return True
 
@@ -29,7 +29,7 @@ class MemoryLock(BaseLock):
         """Unlock an object."""
         try:
             hash_key = self.hash_key
-        except TucoDoNotLock:
+        except TucoDoNotLockError:
             return True
 
         with self.global_lock:

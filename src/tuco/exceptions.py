@@ -7,37 +7,37 @@ class TucoException(Exception):
     pass
 
 
-class TucoEventNotFound(TucoException):
+class TucoEventNotFoundError(TucoException):
     """Event not found."""
 
     pass
 
 
-class TucoInvalidStateChange(TucoException):
+class TucoInvalidStateChangeError(TucoException):
     """In case someone try to change to an invalid state."""
 
     pass
 
 
-class TucoInvalidStateHolder(TucoException):
+class TucoInvalidStateHolderError(TucoException):
     """In case the state holder do not have all required attributes."""
 
     pass
 
 
-class TucoDoNotLock(TucoException):
+class TucoDoNotLockError(TucoException):
     """In case we don't have and ID, means that the model is new."""
 
     pass
 
 
-class TucoAlreadyLocked(TucoException):
+class TucoAlreadyLockedError(TucoException):
     """When an object is already locked."""
 
     pass
 
 
-class TucoEmptyFSM(TucoException):
+class TucoEmptyFSMError(TucoException):
     """FSM has no state defined."""
 
     pass

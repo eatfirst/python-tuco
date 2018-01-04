@@ -1,5 +1,5 @@
 """Basic lock interface."""
-from tuco.exceptions import TucoDoNotLock
+from tuco.exceptions import TucoDoNotLockError
 
 
 class BaseLock:
@@ -17,7 +17,7 @@ class BaseLock:
         if primary_key:
             return 'fsm_{}_pk_{}'.format(self.fsm.__class__.__name__, primary_key)
 
-        raise TucoDoNotLock()
+        raise TucoDoNotLockError()
 
     def lock(self) -> bool:
         """Implement lock."""

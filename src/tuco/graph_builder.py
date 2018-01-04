@@ -3,11 +3,11 @@ import tempfile
 from typing import List, Optional, Type
 
 from tuco import FSM
-from tuco.exceptions import TucoEmptyFSM
+from tuco.exceptions import TucoEmptyFSMError
 from tuco.properties import Error, Event, FinalState, State, Timeout
 
 
-class GenerateGraph:
+class GraphBuilder:
     """Parse state machine's states and events to generate graphs."""
 
     TIMEOUT_ATTRIBUTES = {'color': 'lightgray', 'fontcolor': 'lightgray'}
@@ -23,7 +23,7 @@ class GenerateGraph:
                                'optional graph support.') from e
         states = fsm_class._states
         if not states:
-            raise TucoEmptyFSM()
+            raise TucoEmptyFSMError()
 
         self.fsm_class = fsm_class
         self.states = states.items()
@@ -106,4 +106,4 @@ class GenerateGraph:
                     pass
 
 
-generate_from_class = GenerateGraph.generate_from_class
+generate_from_class = GraphBuilder.generate_from_class

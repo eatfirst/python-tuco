@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from tuco import FSM
-from tuco.exceptions import TucoEmptyFSM
+from tuco.exceptions import TucoEmptyFSMError
 
 from tests.example_fsm import ExampleCreditCardFSM
 
@@ -23,5 +23,5 @@ def test_svg():
 def test_empty_fsm():
     """Test a case where FSM has no state and tries to generate a graph."""
     new_class = type('EmptyFSM', (FSM,), {})  # type: FSM
-    with pytest.raises(TucoEmptyFSM):
+    with pytest.raises(TucoEmptyFSMError):
         new_class.generate_graph()

@@ -5,7 +5,8 @@ from typing import Dict, Iterator, List, Tuple, Type  # noqa
 
 import pytz
 
-from tuco.exceptions import TucoAlreadyLocked, TucoEventNotFound, TucoInvalidStateChange, TucoInvalidStateHolder
+from tuco.exceptions import (TucoAlreadyLockedError, TucoEventNotFoundError, TucoInvalidStateChangeError,
+                             TucoInvalidStateHolderError)
 from tuco.locks import MemoryLock
 from tuco.locks.base import BaseLock  # noqa
 from tuco.meta import FSMBase
@@ -38,7 +39,7 @@ class FSM(metaclass=FSMBase):
         self.container_object = container_object
         for field in (self.state_attribute, self.date_attribute, self.id_field):
             if not hasattr(container_object, field):
-                raise TucoInvalidStateHolder('Required field {!r} not found inside {!r}.'.format(
+                raise TucoInvalidStateHolderError('Required field {!r} not found inside {!r}.'.format(
                     field, container_object))
         if self.current_state is None:
             self.current_state = self.initial_state
@@ -51,8 +52,8 @@ class FSM(metaclass=FSMBase):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """If FSMAlreadyLocked did not throw, unlock the machine."""
-        if exc_type and issubclass(exc_type, TucoAlreadyLocked):
+        """If TucoAlreadyLockedError did not throw, unlock the machine."""
+        if exc_type and issubclass(exc_type, TucoAlreadyLockedError):
             return
 
         self.lock.unlock()
@@ -85,7 +86,8 @@ class FSM(metaclass=FSMBase):
         old_state = copy.copy(self.container_object)
         if new_state != self.fatal_state:
             if not self.state_allowed(new_state):
-                raise TucoInvalidStateChange("Old state {!r}, new state {!r}.".format(self.current_state, new_state))
+                raise TucoInvalidStateChangeError('Old state {!r}, new state {!r}.'.format(self.current_state,
+                                                                                           new_state))
 
             setattr(self.container_object, self.state_attribute, new_state)
             setattr(self.container_object, self.date_attribute, self.current_time)
@@ -147,7 +149,7 @@ class FSM(metaclass=FSMBase):
             if event.event_name == event_name:
                 return event
 
-        raise TucoEventNotFound('Event {!r} not found in {!r} on current state {!r}'.format(
+        raise TucoEventNotFoundError('Event {!r} not found in {!r} on current state {!r}'.format(
             event_name, [event.event_name for event in self.possible_events], self.current_state))
 
     def event_allowed(self, event_name) -> bool:
@@ -157,7 +159,7 @@ class FSM(metaclass=FSMBase):
         """
         try:
             self._get_event(event_name)
-        except TucoEventNotFound:
+        except TucoEventNotFoundError:
             return False
 
         return True
@@ -251,5 +253,5 @@ class FSM(metaclass=FSMBase):
     @classmethod
     def generate_graph(cls, file_format='svg') -> str:
         """Generate a SVG graph."""
-        from .generate_graph import generate_from_class
+        from .graph_builder import generate_from_class
         return generate_from_class(cls, file_format)

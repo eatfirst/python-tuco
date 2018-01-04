@@ -88,7 +88,7 @@ event is allowed to be executed:
         refunded = properties.FinalState()
         charged_back = properties.FinalState()
 
-The state machine will be validated when it gets parsed by python interpreter and below you can find a visual
+The state machine will be validated when it gets parsed by Python interpreter and below you can find a visual
 representation of this state machine.
 
 .. image:: ../tests/fixtures/sample-fsm.svg
@@ -195,7 +195,7 @@ this example to save in a table where you could have a worker to pull them and d
 
         fsm_class = db.Column(db.String)
         model_class = db.Column(db.String)
-        current_state= = db.Column(db.String)
+        current_state = db.Column(db.String)
         model_id = db.Column(db.Integer)
 
 
@@ -236,7 +236,7 @@ this example to save in a table where you could have a worker to pull them and d
 Using events with enums instead of simple strings
 =================================================
 
-In case you want to have a sane event naming, probably it is better to use constants or python's enum module.
+In case you want to have a sane event naming, probably it is better to use constants or Python's enum module.
 Here is a simple python3.6+ example::
 
     import enum

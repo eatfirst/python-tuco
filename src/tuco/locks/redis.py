@@ -1,6 +1,6 @@
 from typing import Optional  # noqa
 
-from tuco.exceptions import TucoAlreadyLocked, TucoDoNotLock
+from tuco.exceptions import TucoAlreadyLockedError, TucoDoNotLockError
 
 from .base import BaseLock
 
@@ -24,13 +24,13 @@ class RedisLock(BaseLock):
         """Lock an object."""
         try:
             hash_key = self.hash_key
-        except TucoDoNotLock:
+        except TucoDoNotLockError:
             return True
 
         self._lock = self.redis_connection.lock(hash_key, timeout=self.lock_timeout)
 
         if not self._lock.acquire(False):
-            raise TucoAlreadyLocked()
+            raise TucoAlreadyLockedError()
         return True
 
     def unlock(self) -> bool:

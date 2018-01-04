@@ -11,7 +11,7 @@ import pytz
 
 from tuco import FSM, properties
 from tuco.decorators import on_change, on_error
-from tuco.exceptions import TucoAlreadyLocked, TucoEventNotFound, TucoInvalidStateChange
+from tuco.exceptions import TucoAlreadyLockedError, TucoEventNotFoundError, TucoInvalidStateChangeError
 from tuco.locks import RedisLock
 
 from tests.example_fsm import ExampleCreditCardFSM, StateHolder
@@ -35,7 +35,7 @@ def test_state_changing():
     assert fsm.current_state == 'paid'
 
     assert fsm.event_allowed('Initialize') is False
-    with pytest.raises(TucoEventNotFound):
+    with pytest.raises(TucoEventNotFoundError):
         assert fsm.trigger('Initialize')
     assert fsm.container_object.current_state == 'paid'
 
@@ -181,7 +181,7 @@ def test_invalid_state_changes():
     assert fsm.current_state == 'state1'
 
     fsm.current_state = 'state2'
-    with pytest.raises(TucoInvalidStateChange):
+    with pytest.raises(TucoInvalidStateChangeError):
         fsm.current_state = 'state1'
 
     assert fsm.current_state == 'state2'
@@ -202,7 +202,7 @@ def test_invalid_state_changes():
     assert fsm2.current_state == 'state1'
 
     fsm2.current_state = 'state2'
-    with pytest.raises(TucoInvalidStateChange):
+    with pytest.raises(TucoInvalidStateChangeError):
         fsm2.current_state = 'state1'
 
     assert fsm2.current_state == 'state2'
@@ -363,7 +363,7 @@ def test_locking():
     # Hold until the machine is really locked.
     hold_triggered.get(timeout=1)
 
-    with pytest.raises(TucoAlreadyLocked):
+    with pytest.raises(TucoAlreadyLockedError):
         with TestFSM(StateHolder()):
             pass
 
@@ -443,7 +443,7 @@ def test_redis_locking():
     # Hold until the machine is really locked.
     hold_triggered.get(timeout=1.5)  # It it timeout it means that the thread broke somehow
 
-    with pytest.raises(TucoAlreadyLocked):
+    with pytest.raises(TucoAlreadyLockedError):
         with TestFSM(StateHolder()):
             pass
 
