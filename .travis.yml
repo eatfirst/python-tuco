@@ -25,6 +25,8 @@ matrix:
       env:
         - TOXENV=pypy,report,coveralls
 before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq graphviz
   - python --version
   - uname -a
   - lsb_release -a
