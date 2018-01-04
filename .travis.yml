@@ -21,9 +21,6 @@ matrix:
     - python: '3.6'
       env:
         - TOXENV=docs
-    - python: 'pypy-5.4'
-      env:
-        - TOXENV=pypy,report,coveralls
 services:
   - redis-server
 before_install:
