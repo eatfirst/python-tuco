@@ -24,6 +24,8 @@ matrix:
     - python: 'pypy-5.4'
       env:
         - TOXENV=pypy,report,coveralls
+services:
+  - redis-server
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq graphviz
