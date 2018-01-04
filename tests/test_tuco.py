@@ -1,7 +1,6 @@
 """FSM Base tests."""
 
 import os
-import queue
 import threading
 from datetime import timedelta
 from unittest import mock
@@ -337,8 +336,8 @@ def test_on_error():
 
 def test_locking():
     """Testing locking system."""
-    hold_triggered = queue.Queue()
-    shutdown = queue.Queue()
+    hold_triggered = threading.Event()
+    shutdown = threading.Event()
 
     class TestFSM(FSM):
         """Dumb class."""
@@ -346,8 +345,8 @@ def test_locking():
         # pylint: disable=no-self-use
         def hold(self):
             """Hold the state machine."""
-            hold_triggered.put(True)
-            shutdown.get()
+            hold_triggered.set()
+            shutdown.wait()
 
         new = properties.State(events=[properties.Event('Hold', 'final_state', commands=[hold])])
         final_state = properties.FinalState()
@@ -361,20 +360,20 @@ def test_locking():
     worker.start()
 
     # Hold until the machine is really locked.
-    hold_triggered.get(timeout=1)
+    hold_triggered.wait(timeout=1)
 
     with pytest.raises(TucoAlreadyLockedError):
         with TestFSM(StateHolder()):
             pass
 
-    shutdown.put(True)
+    shutdown.set()
     worker.join()
 
 
 def test_locking_without_id():
     """Make sure that items without id won't get locked."""
-    hold_triggered = queue.Queue()
-    shutdown = queue.Queue()
+    hold_triggered = threading.Event()
+    shutdown = threading.Event()
 
     class TestFSM(FSM):
         """Dumb class."""
@@ -382,8 +381,8 @@ def test_locking_without_id():
         # pylint: disable=no-self-use
         def hold(self):
             """Hold the state machine."""
-            hold_triggered.put(True)
-            shutdown.get()
+            hold_triggered.set()
+            shutdown.wait()
 
         new = properties.State(events=[
             properties.Event('Hold', 'final_state', commands=[hold]),
@@ -403,20 +402,20 @@ def test_locking_without_id():
     worker.start()
 
     # Hold until the machine is really locked.
-    hold_triggered.get()
+    hold_triggered.wait()
 
     with TestFSM(state_holder) as fsm:
         fsm.trigger('Finish')
         assert fsm.current_state == 'final_state'
 
-    shutdown.put(True)
+    shutdown.set()
     worker.join()
 
 
 def test_redis_locking():
     """Testing redis locking system."""
-    hold_triggered = queue.Queue()
-    shutdown = queue.Queue()
+    hold_triggered = threading.Event()
+    shutdown = threading.Event()
 
     class ConfiguredRedisLock(RedisLock):
         def __init__(self, *args, **kwargs):
@@ -434,20 +433,20 @@ def test_redis_locking():
     def lock_it_all():
         """Lock the state machine to test it."""
         with TestFSM(StateHolder()):
-            hold_triggered.put(True)
-            shutdown.get()
+            hold_triggered.set()
+            shutdown.wait()
 
     worker = threading.Thread(target=lock_it_all, daemon=True)
     worker.start()
 
     # Hold until the machine is really locked.
-    hold_triggered.get(timeout=1.5)  # It it timeout it means that the thread broke somehow
+    hold_triggered.wait(timeout=1.5)  # It it timeout it means that the thread broke somehow
 
     with pytest.raises(TucoAlreadyLockedError):
         with TestFSM(StateHolder()):
             pass
 
-    shutdown.put(True)
+    shutdown.set()
     worker.join()
 
 
