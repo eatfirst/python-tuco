@@ -412,8 +412,9 @@ def test_locking_without_id():
     worker.join()
 
 
-def test_redis_locking():
+def test_redis_locking(dont_run_in_appveyor):
     """Testing redis locking system."""
+    assert dont_run_in_appveyor  # After we install redis in appveyor we can remove this
     hold_triggered = threading.Event()
     shutdown = threading.Event()
 
