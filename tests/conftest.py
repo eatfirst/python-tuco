@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture()
 def dont_run_in_appveyor():
     if is_running_in_appveyor():
-        pytest.skip('asa')
+        pytest.skip('This test does not work on appveyor')
 
     return True
 
