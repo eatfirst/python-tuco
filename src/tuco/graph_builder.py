@@ -21,7 +21,7 @@ class GraphBuilder:
         except ImportError as e:
             raise RuntimeError('Graphviz could not be found, make sure you installed tuco with '
                                'optional graph support.') from e
-        states = fsm_class._states
+        states = fsm_class.get_all_states()
         if not states:
             raise TucoEmptyFSMError()
 
