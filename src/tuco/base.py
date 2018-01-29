@@ -220,6 +220,11 @@ class FSM(metaclass=FSMBase):
         return True
 
     @classmethod
+    def get_all_states(cls) -> Dict[str, State]:
+        """List all states for this state machine."""
+        return cls._states
+
+    @classmethod
     def get_all_timeouts(cls) -> Iterator[Tuple[str, Timeout]]:
         """List all configured timeouts for this state machine."""
         for state_name, state in cls._states.items():
