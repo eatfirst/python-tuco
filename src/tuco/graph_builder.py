@@ -1,3 +1,4 @@
+"""Graph builder module."""
 import os
 import tempfile
 from typing import List, Optional, Type
@@ -10,17 +11,18 @@ from tuco.properties import Error, Event, FinalState, State, Timeout
 class GraphBuilder:
     """Parse state machine's states and events to generate graphs."""
 
-    TIMEOUT_ATTRIBUTES = {'color': 'lightgray', 'fontcolor': 'lightgray'}
-    FINAL_STATE_ATTRIBUTES = {'shape': 'box', 'fillcolor': 'lightgray', 'style': 'filled'}
-    EVENT_ATTRIBUTES = {'color': 'green', 'fontcolor': 'green'}
-    ERROR_ATTRIBUTES = {'color': 'red', 'fontcolor': 'red'}
+    TIMEOUT_ATTRIBUTES = {"color": "lightgray", "fontcolor": "lightgray"}
+    FINAL_STATE_ATTRIBUTES = {"shape": "box", "fillcolor": "lightgray", "style": "filled"}
+    EVENT_ATTRIBUTES = {"color": "green", "fontcolor": "green"}
+    ERROR_ATTRIBUTES = {"color": "red", "fontcolor": "red"}
 
     def __init__(self, fsm_class: Type[FSM], file_format) -> None:
         try:
             from graphviz import Digraph
         except ImportError as e:
-            raise RuntimeError('Graphviz could not be found, make sure you installed tuco with '
-                               'optional graph support.') from e
+            raise RuntimeError(
+                "Graphviz could not be found, make sure you installed tuco with " "optional graph support."
+            ) from e
         states = fsm_class.get_all_states()
         if not states:
             raise TucoEmptyFSMError()
@@ -29,11 +31,11 @@ class GraphBuilder:
         self.states = states.items()
         self.file_format = file_format
 
-        comment = self.fsm_class.__doc__ or ''
+        comment = self.fsm_class.__doc__ or ""
         # Replace line endings for multi line comments.
-        comment = comment.replace('\n', '\n//')
+        comment = comment.replace("\n", "\n//")
 
-        self.dot = Digraph(comment=comment, format=file_format, graph_attr={'overlap': 'false'})
+        self.dot = Digraph(comment=comment, format=file_format, graph_attr={"overlap": "false"})
 
     @classmethod
     def generate_from_class(cls, fsm_class: Type[FSM], file_format) -> str:
@@ -54,8 +56,12 @@ class GraphBuilder:
         """Iterate over all events of a state and add nodes to graphviz."""
         for event in events:
             self.dot.node(event.target_state)
-            self.dot.edge(parent_state_name, event.target_state, label='Event: {}'.format(event.event_name),
-                          _attributes=self.EVENT_ATTRIBUTES)
+            self.dot.edge(
+                parent_state_name,
+                event.target_state,
+                label="Event: {}".format(event.event_name),
+                _attributes=self.EVENT_ATTRIBUTES,
+            )
 
             self.add_error_node(parent_state_name, event.error)
 
@@ -79,21 +85,21 @@ class GraphBuilder:
 
         target_state = error.target_state
         self.dot.node(target_state)
-        self.dot.edge(parent_state_name, target_state, label='Error', _attributes=self.ERROR_ATTRIBUTES)
+        self.dot.edge(parent_state_name, target_state, label="Error", _attributes=self.ERROR_ATTRIBUTES)
 
     def add_timeout_node(self, parent_state_name: str, timeout: Optional[Timeout]) -> None:
         """Render a timeout node if present."""
         if not timeout:
             return
         self.dot.node(timeout.target_state)
-        self.dot.edge(parent_state_name, timeout.target_state, label='Timeout', _attributes=self.TIMEOUT_ATTRIBUTES)
+        self.dot.edge(parent_state_name, timeout.target_state, label="Timeout", _attributes=self.TIMEOUT_ATTRIBUTES)
 
     def render_graph(self) -> str:
         """Render graph in a file and return its content."""
-        temp_file = tempfile.NamedTemporaryFile(prefix='tuco', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(prefix="tuco", delete=False)
         temp_file.close()
         filename = temp_file.name
-        graph_file = '{}.{}'.format(filename, self.file_format)
+        graph_file = "{}.{}".format(filename, self.file_format)
 
         try:
             self.dot.render(os.path.basename(filename), os.path.dirname(filename))

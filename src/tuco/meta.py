@@ -10,15 +10,22 @@ class FSMBase(type):
     def __new__(mcs, name, bases, attributes):
         """Make sure that we don't have broken state machines and hide some stuff from users."""
         super_new = super(FSMBase, mcs).__new__
-        module = attributes.pop('__module__', None)
-        new_class = super_new(mcs, name, bases, {'__module__': module})
+
+        # Propagate existing __classcell__ to fix a DeprecationWarning: __class__ not set defining
+        # 'MyClass' as <class 'path.to.MyClass'>. Was __classcell__ propagated to type.__new__?
+        module = attributes.pop("__module__", None)
+        new_namespace = {"__module__": module}
+        if "__classcell__" in attributes:
+            new_namespace["__classcell__"] = attributes["__classcell__"]
+
+        new_class = super_new(mcs, name, bases, new_namespace)
         for name, value in attributes.items():
             if isinstance(value, BaseState):
                 mcs._create_state(new_class, name, value)
             else:
                 setattr(new_class, name, value)
                 if callable(value):
-                    for event_name in ('_on_change_event', '_on_error_event'):
+                    for event_name in ("_on_change_event", "_on_error_event"):
                         if getattr(value, event_name, False):
                             setattr(new_class, event_name, value)
 
@@ -35,7 +42,7 @@ class FSMBase(type):
 
         states = new_class._states
         if name in states:
-            raise RuntimeError('Duplicated states are not allowed {!r} {!r}'.format(new_class, name))
+            raise RuntimeError("Duplicated states are not allowed {!r} {!r}".format(new_class, name))
 
         states[name] = value
 
@@ -49,10 +56,13 @@ class FSMBase(type):
             if isinstance(state, FinalState):
                 continue
             if state.timeout and state.timeout.target_state not in states:
-                raise RuntimeError('Invalid timeout target state, {!r} not found in {!r}.'.format(
-                    state.timeout.target_state, new_class))
+                raise RuntimeError(
+                    "Invalid timeout target state, {!r} not found in {!r}.".format(
+                        state.timeout.target_state, new_class
+                    )
+                )
             if name == new_class.initial_state and state.timeout:
-                raise RuntimeError('Initial state cannot have a timeout {!r} {!r}.'.format(new_class, state))
+                raise RuntimeError("Initial state cannot have a timeout {!r} {!r}.".format(new_class, state))
 
     @staticmethod
     def _validate_events(new_class) -> None:
@@ -67,8 +77,11 @@ class FSMBase(type):
             counter = collections.Counter([event.event_name for event in parent_state.events])
             duplicated_events = [(element, amount) for element, amount in counter.items() if amount > 1]
             if duplicated_events:
-                raise RuntimeError('Duplicated events found in state {} {!r} {}'.format(parent_state_name, parent_state,
-                                                                                        duplicated_events))
+                raise RuntimeError(
+                    "Duplicated events found in state {} {!r} {}".format(
+                        parent_state_name, parent_state, duplicated_events
+                    )
+                )
 
             for event in parent_state.events:
                 FSMBase._validate_event(event, parent_state_name, parent_state, new_class)
@@ -77,12 +90,12 @@ class FSMBase(type):
     def _validate_event(event, parent_state_name, parent_state, new_class) -> None:
         """Validate an event."""
         if not isinstance(event, Event):
-            raise RuntimeError('Invalid event class when parsing state {} in {!r}'.format(
-                parent_state_name, new_class))
+            raise RuntimeError("Invalid event class when parsing state {} in {!r}".format(parent_state_name, new_class))
 
-        if event.target_state not in getattr(new_class, '_states', {}):
-            raise RuntimeError('Target state not found {} in {!r} ({})'.format(
-                event.target_state, parent_state, parent_state_name))
+        if event.target_state not in getattr(new_class, "_states", {}):
+            raise RuntimeError(
+                "Target state not found {} in {!r} ({})".format(event.target_state, parent_state, parent_state_name)
+            )
 
     @staticmethod
     def _validate_errors(new_class) -> None:
@@ -106,4 +119,4 @@ class FSMBase(type):
         """Check if a declared error is properly configured."""
         states = new_class._states
         if not states or error.target_state not in states:
-            raise RuntimeError('Could not find target state {} inside {!r}'.format(error.target_state, new_class))
+            raise RuntimeError("Could not find target state {} inside {!r}".format(error.target_state, new_class))

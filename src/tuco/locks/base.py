@@ -15,7 +15,7 @@ class BaseLock:
         """Generate a hash key to be used when locking an object."""
         primary_key = getattr(self.fsm.container_object, self.id_field, None)
         if primary_key:
-            return 'fsm_{}_pk_{}'.format(self.fsm.__class__.__name__, primary_key)
+            return "fsm_{}_pk_{}".format(self.fsm.__class__.__name__, primary_key)
 
         raise TucoDoNotLockError()
 
