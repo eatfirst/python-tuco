@@ -5,6 +5,7 @@ This is a port of https://github.com/pypa/python-packaging-user-guide/blob/maste
 with various fixes and improvements that just weren't feasible to implement in PowerShell.
 """
 from __future__ import print_function
+
 from os import environ
 from os.path import exists
 from subprocess import check_call
@@ -16,7 +17,7 @@ except ImportError:
 
 BASE_URL = "https://www.python.org/ftp/python/"
 GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
-GET_PIP_PATH = "C:\get-pip.py"
+GET_PIP_PATH = "C:\get-pip.py"  # noqa
 URLS = {
     ("2.7", "64"): BASE_URL + "2.7.13/python-2.7.13.amd64.msi",
     ("2.7", "32"): BASE_URL + "2.7.13/python-2.7.13.msi",
@@ -32,18 +33,25 @@ URLS = {
 }
 INSTALL_CMD = {
     # Commands are allowed to fail only if they are not the last command.  Eg: uninstall (/x) allowed to fail.
-    "2.7": [["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
-            ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"]],
-    "3.3": [["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
-            ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"]],
-    "3.4": [["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
-            ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"]],
+    "2.7": [
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"],
+    ],
+    "3.3": [
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"],
+    ],
+    "3.4": [
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/x", "{path}"],
+        ["msiexec.exe", "/L*+!", "install.log", "/qn", "/i", "{path}", "TARGETDIR={home}"],
+    ],
     "3.5": [["{path}", "/quiet", "TargetDir={home}"]],
     "3.6": [["{path}", "/quiet", "TargetDir={home}"]],
 }
 
 
 def download_file(url, path):
+    """Download a URL into a file."""
     print("Downloading: {} (into {})".format(url, path))
     progress = [0, 0]
 
@@ -58,6 +66,7 @@ def download_file(url, path):
 
 
 def install_python(version, arch, home):
+    """Install Python on Windows."""
     print("Installing Python", version, "for", arch, "bit architecture to", home)
     if exists(home):
         return
@@ -84,6 +93,7 @@ def install_python(version, arch, home):
 
 
 def download_python(version, arch):
+    """Download Python on Windows."""
     for _ in range(3):
         try:
             return download_file(URLS[version, arch], "installer.exe")
@@ -93,6 +103,7 @@ def download_python(version, arch):
 
 
 def install_pip(home):
+    """Install pip on Windows."""
     pip_path = home + "/Scripts/pip.exe"
     python_path = home + "/python.exe"
     if exists(pip_path):
@@ -105,12 +116,13 @@ def install_pip(home):
 
 
 def install_packages(home, *packages):
+    """Install Windows packages."""
     cmd = [home + "/Scripts/pip.exe", "install"]
     cmd.extend(packages)
     check_call(cmd)
 
 
 if __name__ == "__main__":
-    install_python(environ['PYTHON_VERSION'], environ['PYTHON_ARCH'], environ['PYTHON_HOME'])
-    install_pip(environ['PYTHON_HOME'])
-    install_packages(environ['PYTHON_HOME'], "setuptools>=18.0.1", "wheel", "tox", "virtualenv>=13.1.0")
+    install_python(environ["PYTHON_VERSION"], environ["PYTHON_ARCH"], environ["PYTHON_HOME"])
+    install_pip(environ["PYTHON_HOME"])
+    install_packages(environ["PYTHON_HOME"], "setuptools>=18.0.1", "wheel", "tox", "virtualenv>=13.1.0")

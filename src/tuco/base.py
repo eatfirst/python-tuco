@@ -5,14 +5,18 @@ from typing import Dict, Iterator, List, Tuple, Type  # noqa
 
 import pytz
 
-from tuco.exceptions import (TucoAlreadyLockedError, TucoEventNotFoundError, TucoInvalidStateChangeError,
-                             TucoInvalidStateHolderError)
+from tuco.exceptions import (
+    TucoAlreadyLockedError,
+    TucoEventNotFoundError,
+    TucoInvalidStateChangeError,
+    TucoInvalidStateHolderError,
+)
 from tuco.locks import MemoryLock
 from tuco.locks.base import BaseLock  # noqa
 from tuco.meta import FSMBase
 from tuco.properties import Event, FinalState, State, Timeout
 
-__all__ = ('FSM', )
+__all__ = ("FSM",)
 
 mockable_utcnow = datetime.utcnow  # Easier to write tests
 
@@ -24,12 +28,12 @@ class FSM(metaclass=FSMBase):
     """
 
     #: The default initial state is "new" but can be overridden
-    initial_state = 'new'
-    state_attribute = 'current_state'
-    date_attribute = 'current_state_date'
-    id_field = 'id'
+    initial_state = "new"
+    state_attribute = "current_state"
+    date_attribute = "current_state_date"
+    id_field = "id"
 
-    fatal_state = 'fatal_error'
+    fatal_state = "fatal_error"
 
     lock_class = MemoryLock  # type: Type[BaseLock]
     _states = None  # type: Dict[str, State]
@@ -39,14 +43,15 @@ class FSM(metaclass=FSMBase):
         self.container_object = container_object
         for field in (self.state_attribute, self.date_attribute, self.id_field):
             if not hasattr(container_object, field):
-                raise TucoInvalidStateHolderError('Required field {!r} not found inside {!r}.'.format(
-                    field, container_object))
+                raise TucoInvalidStateHolderError(
+                    "Required field {!r} not found inside {!r}.".format(field, container_object)
+                )
         if self.current_state is None:
             self.current_state = self.initial_state
 
         self.lock = self.lock_class(self, self.id_field)
 
-    def __enter__(self) -> 'FSM':
+    def __enter__(self) -> "FSM":
         """Lock the state machine."""
         self.lock.lock()
         return self
@@ -60,9 +65,12 @@ class FSM(metaclass=FSMBase):
 
     def __repr__(self) -> str:
         """Basic representation."""
-        return '<{} - current_state {!r} with holder {} - ID {!r}>'.format(
-            self.__class__.__name__, self.current_state, self.container_object.__class__.__name__,
-            getattr(self.container_object, self.id_field))
+        return "<{} - current_state {!r} with holder {} - ID {!r}>".format(
+            self.__class__.__name__,
+            self.current_state,
+            self.container_object.__class__.__name__,
+            getattr(self.container_object, self.id_field),
+        )
 
     @property
     def current_time(self) -> datetime:
@@ -86,8 +94,9 @@ class FSM(metaclass=FSMBase):
         old_state = copy.copy(self.container_object)
         if new_state != self.fatal_state:
             if not self.state_allowed(new_state):
-                raise TucoInvalidStateChangeError('Old state {!r}, new state {!r}.'.format(self.current_state,
-                                                                                           new_state))
+                raise TucoInvalidStateChangeError(
+                    "Old state {!r}, new state {!r}.".format(self.current_state, new_state)
+                )
 
             setattr(self.container_object, self.state_attribute, new_state)
             setattr(self.container_object, self.date_attribute, self.current_time)
@@ -111,7 +120,7 @@ class FSM(metaclass=FSMBase):
         if self.current_state_instance.timeout and self.current_state_instance.timeout.target_state == state_name:
             return True
 
-        if any([event for event in self.possible_events if event.target_state == state_name]):
+        if any(event for event in self.possible_events if event.target_state == state_name):
             return True
 
         current_state = self.current_state_instance
@@ -141,7 +150,7 @@ class FSM(metaclass=FSMBase):
         :param state_name: State to check
         """
         state = cls._states[state_name]
-        return getattr(state, 'events', [])
+        return getattr(state, "events", [])
 
     def _get_event(self, event_name) -> Event:
         """Get an event inside current state based on it's name."""
@@ -149,8 +158,11 @@ class FSM(metaclass=FSMBase):
             if event.event_name == event_name:
                 return event
 
-        raise TucoEventNotFoundError('Event {!r} not found in {!r} on current state {!r}'.format(
-            event_name, [event.event_name for event in self.possible_events], self.current_state))
+        raise TucoEventNotFoundError(
+            "Event {!r} not found in {!r} on current state {!r}".format(
+                event_name, [event.event_name for event in self.possible_events], self.current_state
+            )
+        )
 
     def event_allowed(self, event_name) -> bool:
         """Check if is possible to run an event.
@@ -245,18 +257,19 @@ class FSM(metaclass=FSMBase):
         :param old_state: A shallow copy of the holder object.
         :param new_state: The changed version of the object holder.
         """
-        function = getattr(self, '_on_change_event', None)
+        function = getattr(self, "_on_change_event", None)
         if function:
             function(old_state, new_state)
 
     def _call_on_error(self, exception, new_state) -> None:
         """If on_error function exists, call it."""
-        function = getattr(self, '_on_error_event', None)
+        function = getattr(self, "_on_error_event", None)
         if function:
             function(self.current_state, new_state, exception)
 
     @classmethod
-    def generate_graph(cls, file_format='svg') -> str:
+    def generate_graph(cls, file_format="svg") -> str:
         """Generate a SVG graph."""
         from .graph_builder import generate_from_class
+
         return generate_from_class(cls, file_format)

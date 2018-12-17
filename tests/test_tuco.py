@@ -8,35 +8,34 @@ from unittest import mock
 import pytest
 import pytz
 
+from tests.example_fsm import ExampleCreditCardFSM, StateHolder
 from tuco import FSM, properties
 from tuco.decorators import on_change, on_error
 from tuco.exceptions import TucoAlreadyLockedError, TucoEventNotFoundError, TucoInvalidStateChangeError
 from tuco.locks import RedisLock
 
-from tests.example_fsm import ExampleCreditCardFSM, StateHolder
-
 
 def test_state_changing():
     """Test basic changing."""
     fsm = ExampleCreditCardFSM(StateHolder())
-    assert fsm.container_object.current_state == 'new'
+    assert fsm.container_object.current_state == "new"
 
-    assert fsm.event_allowed('Initialize')
-    assert fsm.trigger('Initialize')
-    assert fsm.current_state == 'authorisation_pending'
+    assert fsm.event_allowed("Initialize")
+    assert fsm.trigger("Initialize")
+    assert fsm.current_state == "authorisation_pending"
 
-    assert fsm.event_allowed('Authorize')
-    assert fsm.trigger('Authorize')
-    assert fsm.current_state == 'capture_pending'
+    assert fsm.event_allowed("Authorize")
+    assert fsm.trigger("Authorize")
+    assert fsm.current_state == "capture_pending"
 
-    assert fsm.event_allowed('Capture')
-    assert fsm.trigger('Capture')
-    assert fsm.current_state == 'paid'
+    assert fsm.event_allowed("Capture")
+    assert fsm.trigger("Capture")
+    assert fsm.current_state == "paid"
 
-    assert fsm.event_allowed('Initialize') is False
+    assert fsm.event_allowed("Initialize") is False
     with pytest.raises(TucoEventNotFoundError):
-        assert fsm.trigger('Initialize')
-    assert fsm.container_object.current_state == 'paid'
+        assert fsm.trigger("Initialize")
+    assert fsm.container_object.current_state == "paid"
 
 
 def test_command_execution():
@@ -47,25 +46,18 @@ def test_command_execution():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'new'
-        state_attribute = 'current_state'
+        initial_state = "new"
+        state_attribute = "current_state"
 
-        new = properties.State(
-            events=[
-                properties.Event(
-                    'TestEvent',
-                    'final_state',
-                    commands=[command1, command2])
-            ]
-        )
+        new = properties.State(events=[properties.Event("TestEvent", "final_state", commands=[command1, command2])])
         final_state = properties.FinalState()
 
     fsm = TestFSM(state_holder)
-    fsm.trigger('TestEvent')
+    fsm.trigger("TestEvent")
 
     command1.assert_called_once_with(state_holder)
     command2.assert_called_once_with(state_holder)
-    assert fsm.current_state == 'final_state'
+    assert fsm.current_state == "final_state"
 
 
 def test_command_with_error():
@@ -79,47 +71,42 @@ def test_command_with_error():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'new'
-        state_attribute = 'current_state'
+        initial_state = "new"
+        state_attribute = "current_state"
 
         new = properties.State(
-            events=[
-                properties.Event(
-                    'TestEvent',
-                    'final_state',
-                    commands=[command1, command2, command3])
-            ]
+            events=[properties.Event("TestEvent", "final_state", commands=[command1, command2, command3])]
         )
         final_state = properties.FinalState()
 
     fsm = TestFSM(state_holder)
     with pytest.raises(RuntimeError):
-        fsm.trigger('TestEvent')
+        fsm.trigger("TestEvent")
 
     command1.assert_called_once_with(state_holder)
     command2.assert_called_once_with(state_holder)
     assert command3.call_count == 0
-    assert fsm.current_state == 'new'
+    assert fsm.current_state == "new"
 
 
 def test_invalid_error():
     """Test common cases of invalid error configured."""
     with pytest.raises(RuntimeError):
+
         class TestFSM(FSM):
             """Dumb class."""
 
-            state = properties.State(
-                error=properties.Error('invalid_state')
-            )
+            state = properties.State(error=properties.Error("invalid_state"))
 
         assert TestFSM
 
     with pytest.raises(RuntimeError):
+
         class TestFSM2(FSM):
             """Dumb class."""
 
             state = properties.State(
-                events=[properties.Event('EventName', 'final_state', error=properties.Error('invalid_state'))]
+                events=[properties.Event("EventName", "final_state", error=properties.Error("invalid_state"))]
             )
             final_state = properties.FinalState()
 
@@ -134,16 +121,19 @@ def test_errors():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'state'
+        initial_state = "state"
 
         state = properties.State(
-            error=properties.Error('state_error', commands=[state_error_command]),
+            error=properties.Error("state_error", commands=[state_error_command]),
             events=[
-                properties.Event('TriggerEventError', 'non_reachable',
-                                 error=properties.Error('event_error', commands=[event_error_command]),
-                                 commands=[lambda x: False]),
-                properties.Event('TriggerStateError', 'non_reachable', commands=[lambda x: False])
-            ]
+                properties.Event(
+                    "TriggerEventError",
+                    "non_reachable",
+                    error=properties.Error("event_error", commands=[event_error_command]),
+                    commands=[lambda x: False],
+                ),
+                properties.Event("TriggerStateError", "non_reachable", commands=[lambda x: False]),
+            ],
         )
 
         state_error = properties.FinalState()
@@ -151,60 +141,57 @@ def test_errors():
         non_reachable = properties.FinalState()
 
     fsm = TestFSM(StateHolder())
-    assert fsm.current_state == 'state'
-    assert fsm.trigger('TriggerEventError') is False
-    assert fsm.current_state == 'event_error'
+    assert fsm.current_state == "state"
+    assert fsm.trigger("TriggerEventError") is False
+    assert fsm.current_state == "event_error"
     event_error_command.assert_called_once_with(fsm.container_object)
 
     fsm = TestFSM(StateHolder())
-    assert fsm.current_state == 'state'
-    assert fsm.trigger('TriggerStateError') is False
-    assert fsm.current_state == 'state_error'
+    assert fsm.current_state == "state"
+    assert fsm.trigger("TriggerStateError") is False
+    assert fsm.current_state == "state_error"
     state_error_command.assert_called_once_with(fsm.container_object)
 
 
 def test_invalid_state_changes():
     """Test cases when the current state is being change to an invalid one."""
+
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'state1'
+        initial_state = "state1"
 
-        state1 = properties.State(
-            events=[properties.Event('ChangeState', target_state='state2')]
-        )
+        state1 = properties.State(events=[properties.Event("ChangeState", target_state="state2")])
 
         state2 = properties.FinalState()
 
     fsm = TestFSM(StateHolder())
-    assert fsm.current_state == 'state1'
+    assert fsm.current_state == "state1"
 
-    fsm.current_state = 'state2'
+    fsm.current_state = "state2"
     with pytest.raises(TucoInvalidStateChangeError):
-        fsm.current_state = 'state1'
+        fsm.current_state = "state1"
 
-    assert fsm.current_state == 'state2'
+    assert fsm.current_state == "state2"
 
     class TestFSM2(FSM):
         """Dumb class."""
 
-        initial_state = 'state1'
+        initial_state = "state1"
 
-        state1 = properties.State(
-            events=[properties.Event('ChangeState', target_state='state2')]
-        )
+        state1 = properties.State(events=[properties.Event("ChangeState", target_state="state2")])
 
-        state2 = properties.State(events=[properties.Event('ChangeState', target_state='state3')])
+        state2 = properties.State(events=[properties.Event("ChangeState", target_state="state3")])
         state3 = properties.FinalState()
 
     fsm2 = TestFSM2(StateHolder())
-    assert fsm2.current_state == 'state1'
+    assert fsm2.current_state == "state1"
 
-    fsm2.current_state = 'state2'
+    fsm2.current_state = "state2"
     with pytest.raises(TucoInvalidStateChangeError):
-        fsm2.current_state = 'state1'
+        fsm2.current_state = "state1"
 
-    assert fsm2.current_state == 'state2'
+    assert fsm2.current_state == "state2"
 
 
 def test_timeout():
@@ -214,11 +201,11 @@ def test_timeout():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'new'
+        initial_state = "new"
 
-        new = properties.State(events=[properties.Event('state1', 'state1')])
+        new = properties.State(events=[properties.Event("state1", "state1")])
 
-        state1 = properties.State(timeout=properties.Timeout(timedelta(days=7), 'timeout', commands=[command]))
+        state1 = properties.State(timeout=properties.Timeout(timedelta(days=7), "timeout", commands=[command]))
 
         timeout = properties.FinalState()
 
@@ -228,28 +215,29 @@ def test_timeout():
             return getattr(self.container_object, self.date_attribute).replace(tzinfo=pytz.UTC)
 
     fsm = TestFSM(StateHolder())
-    fsm.trigger('state1')
+    fsm.trigger("state1")
     assert fsm.trigger_timeout() is False
-    assert fsm.current_state == 'state1'
+    assert fsm.current_state == "state1"
     assert command.call_count == 0
 
     fsm.container_object.current_state_date -= timedelta(days=7)
     assert fsm.trigger_timeout() is True
-    assert fsm.current_state == 'timeout'
+    assert fsm.current_state == "timeout"
     command.assert_called_once_with(fsm.container_object)
 
 
 def test_list_timeouts():
     """Test the ability to list all configured timeouts on state machine. Useful to query expired objects."""
+
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'new'
+        initial_state = "new"
 
-        new = properties.State(events=[properties.Event('state1', 'state1')])
+        new = properties.State(events=[properties.Event("state1", "state1")])
 
-        state1 = properties.State(timeout=properties.Timeout(timedelta(days=6), 'timeout'))
-        state2 = properties.State(timeout=properties.Timeout(timedelta(days=5), 'timeout'))
+        state1 = properties.State(timeout=properties.Timeout(timedelta(days=6), "timeout"))
+        state2 = properties.State(timeout=properties.Timeout(timedelta(days=5), "timeout"))
 
         timeout = properties.FinalState()
 
@@ -264,12 +252,12 @@ def test_on_enter():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'state1'
+        initial_state = "state1"
 
         state1 = properties.State(on_enter=[command])
 
     fsm = TestFSM(StateHolder())
-    assert fsm.current_state == 'state1'
+    assert fsm.current_state == "state1"
     command.assert_called_once_with(fsm.container_object)
 
 
@@ -280,14 +268,14 @@ def test_on_change():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'state1'
+        initial_state = "state1"
 
         @on_change
         def hacky_change_call(self, *args, **kwargs):
             """Hacky way to check on change calls."""
             command(self, *args, **kwargs)
 
-        state1 = properties.State(events=[properties.Event('Change', 'final_state')])
+        state1 = properties.State(events=[properties.Event("Change", "final_state")])
         final_state = properties.FinalState()
 
     fsm = TestFSM(StateHolder())
@@ -295,13 +283,13 @@ def test_on_change():
 
     command.reset_mock()
 
-    assert fsm.trigger('Change')
+    assert fsm.trigger("Change")
 
     assert command.call_count == 1
     (arg1, arg2, arg3) = command.call_args[0]  # pylint: disable=unsubscriptable-object
     assert arg1 == fsm
-    assert arg2.current_state == 'state1'
-    assert arg3.current_state == 'final_state'
+    assert arg2.current_state == "state1"
+    assert arg3.current_state == "final_state"
 
 
 def test_on_error():
@@ -312,25 +300,25 @@ def test_on_error():
     class TestFSM(FSM):
         """Dumb class."""
 
-        initial_state = 'state1'
+        initial_state = "state1"
 
         @on_error
         def hacky_error_call(self, *args, **kwargs):
             """Hacky way to check on error calls."""
             command(self, *args, **kwargs)
 
-        state1 = properties.State(events=[properties.Event('Change', 'final_state', commands=[throw_exception])])
+        state1 = properties.State(events=[properties.Event("Change", "final_state", commands=[throw_exception])])
         final_state = properties.FinalState()
 
     fsm = TestFSM(StateHolder())
     with pytest.raises(NotADirectoryError):
-        fsm.trigger('Change')
+        fsm.trigger("Change")
     assert command.call_count == 1
     assert len(command.call_args[0]) == 4  # pylint: disable=unsubscriptable-object
     (self, old_state, new_state, exception) = command.call_args[0]  # pylint: disable=unsubscriptable-object
     assert self == fsm
-    assert old_state == 'state1'
-    assert new_state == 'final_state'
+    assert old_state == "state1"
+    assert new_state == "final_state"
     assert isinstance(exception, NotADirectoryError)
 
 
@@ -348,13 +336,13 @@ def test_locking():
             hold_triggered.set()
             shutdown.wait()
 
-        new = properties.State(events=[properties.Event('Hold', 'final_state', commands=[hold])])
+        new = properties.State(events=[properties.Event("Hold", "final_state", commands=[hold])])
         final_state = properties.FinalState()
 
     def lock_it_all():
         """Lock the state machine to test it."""
         with TestFSM(StateHolder()) as fsm:
-            fsm.trigger('Hold')
+            fsm.trigger("Hold")
 
     worker = threading.Thread(target=lock_it_all, daemon=True)
     worker.start()
@@ -384,10 +372,9 @@ def test_locking_without_id():
             hold_triggered.set()
             shutdown.wait()
 
-        new = properties.State(events=[
-            properties.Event('Hold', 'final_state', commands=[hold]),
-            properties.Event('Finish', 'final_state')
-        ])
+        new = properties.State(
+            events=[properties.Event("Hold", "final_state", commands=[hold]), properties.Event("Finish", "final_state")]
+        )
         final_state = properties.FinalState()
 
     state_holder = StateHolder()
@@ -396,7 +383,7 @@ def test_locking_without_id():
     def lock_it_all():
         """Lock the state machine to test it."""
         with TestFSM(state_holder) as fsm:
-            fsm.trigger('Hold')
+            fsm.trigger("Hold")
 
     worker = threading.Thread(target=lock_it_all, daemon=True)
     worker.start()
@@ -405,8 +392,8 @@ def test_locking_without_id():
     hold_triggered.wait()
 
     with TestFSM(state_holder) as fsm:
-        fsm.trigger('Finish')
-        assert fsm.current_state == 'final_state'
+        fsm.trigger("Finish")
+        assert fsm.current_state == "final_state"
 
     shutdown.set()
     worker.join()
@@ -421,8 +408,9 @@ def test_redis_locking(dont_run_in_appveyor):
     class ConfiguredRedisLock(RedisLock):
         def __init__(self, *args, **kwargs):
             import redis
-            os.environ.setdefault('REDIS_SERVER', '127.0.0.1')
-            super().__init__(10, redis.StrictRedis(os.environ['REDIS_SERVER']), *args, **kwargs)
+
+            os.environ.setdefault("REDIS_SERVER", "127.0.0.1")
+            super().__init__(10, redis.StrictRedis(os.environ["REDIS_SERVER"]), *args, **kwargs)
 
     class TestFSM(FSM):
         """Dumb class."""
@@ -454,6 +442,6 @@ def test_redis_locking(dont_run_in_appveyor):
 def test_fatal_error():
     """Test if we can change current state to fatal state."""
     fsm = ExampleCreditCardFSM(StateHolder())
-    assert fsm.current_state == 'new'
+    assert fsm.current_state == "new"
     fsm.current_state = fsm.fatal_state
     assert fsm.current_state == fsm.fatal_state

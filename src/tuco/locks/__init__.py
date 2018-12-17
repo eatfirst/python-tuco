@@ -1,5 +1,5 @@
 """Locks implementation."""
-__all__ = ('MemoryLock', 'RedisLock')
+__all__ = ("MemoryLock", "RedisLock")
 
 from .memory import MemoryLock
 from .redis import RedisLock

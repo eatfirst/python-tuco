@@ -15,8 +15,9 @@ class RedisLock(BaseLock):
     def __init__(self, lock_timeout, redis_connection, *args, **kwargs) -> None:
         """Start the lock with default timeout."""
         super().__init__(*args, **kwargs)
-        from redis.lock import LuaLock  # noqa
-        self._lock = None  # type: Optional[LuaLock]
+        from redis.lock import Lock  # noqa
+
+        self._lock = None  # type: Optional[Lock]
         self.lock_timeout = lock_timeout
         self.redis_connection = redis_connection
 
@@ -36,6 +37,7 @@ class RedisLock(BaseLock):
     def unlock(self) -> bool:
         """Unlock an object."""
         from redis.exceptions import LockError
+
         if self._lock is None:
             return True
         try:

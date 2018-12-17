@@ -1,3 +1,4 @@
+"""Memory lock module."""
 from threading import RLock
 from typing import Dict  # noqa
 
@@ -22,7 +23,7 @@ class MemoryLock(BaseLock):
         with self.global_lock:
             if hash_key in self.locks:
                 raise TucoAlreadyLockedError()
-            self.locks[hash_key] = 'locked'
+            self.locks[hash_key] = "locked"
             return True
 
     def unlock(self) -> bool:
