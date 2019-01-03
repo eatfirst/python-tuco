@@ -41,9 +41,9 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/tuco/
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/eatfirst/python-tuco/v0.2.0.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/eatfirst/python-tuco/v0.3.0.svg
     :alt: Commits since latest release
-    :target: https://github.com/eatfirst/python-tuco/compare/v0.2.0...master
+    :target: https://github.com/eatfirst/python-tuco/compare/v0.3.0...master
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/tuco.svg
     :alt: PyPI Wheel

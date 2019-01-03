@@ -18,7 +18,7 @@ def read(*names, **kwargs):
 
 setup(
     name="tuco",
-    version="0.2.0",
+    version="0.3.0",
     license="MIT license",
     description="A simple class based finite state machine with parsing time validation",
     long_description="%s\n%s"
