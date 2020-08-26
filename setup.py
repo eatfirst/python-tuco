@@ -53,6 +53,6 @@ setup(
     keywords=[
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
-    install_requires=["pytz", "typing"],
+    install_requires=["pytz", "typing;python_version<\"3.5\""],
     extras_require={"graph": ["graphviz >= 0.8.1"], "redis": ["redis >= 2.10"]},
 )
